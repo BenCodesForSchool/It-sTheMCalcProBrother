@@ -1,0 +1,73 @@
+public class MCalcPro_Activity extends AppCompatActivity implements TextToSpeech.OnInitListener, SensorEventListener {
+
+    private TextToSpeech tts;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        this.tts = new TextToSpeech(this, this);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.mcalcpro_layout);
+    }
+
+    public void onInit(int initStatus)
+    {
+        this.tts.setLanguage(Locale.US);
+    }
+
+    public void onAccuracyChanged(Sensor arg0, int arg1)
+    {
+
+    }
+
+    public void onSensorChanged(SensorEvent event)
+    {
+        double ax = event.values[0];
+        double ay = event.values[1];
+        double az = event.values[2];
+        double a = Math.sqrt(ax*ax + ay*ay + az*az);
+        if (a > 20)
+        {
+            ((EditText) findViewById(R.id.pBox)).setText("");
+            ((EditText) findViewById(R.id.aBox)).setText("");
+            ((EditText) findViewById(R.id.iBox)).setText("");
+            ((TextView) findViewById(R.id.output)).setText("");
+        }
+    }
+
+ public void buttonClicked (View v)
+ {
+    try {
+        MPro mp = new MPro();
+        String a = ((EditText) findViewById(R.id.aBox)).getText().toString();
+        int b = Integer.parseInt(a);
+        String p = (((EditText) findViewById(R.id.pBox)).getText().toString());
+        String i = (((EditText) findViewById(R.id.iBox)).getText().toString());
+        mp.setPrinciple(p);
+        mp.setAmortization(a);
+        mp.setInterest(i);
+        String s = "Monthly Payment = " + mp.computePayment("%,.2f");
+        tts.speak(s, TextToSpeech.QUEUE_FLUSH, null);
+        s += "\n\n";
+        s += "By making this payment monthly for ";
+        s += a;
+        s += " years, the mortgage will be paid in full. But if you terminate the mortgage" +
+                " on its nth anniversary, the balance still owing depends on n as shown below:";
+        s += "\n\n";
+        s += "       n         Balance";
+        s += "\n\n";
+        for (int x = 0; x <= b; x++) {
+            s += String.format("%8d", x) + mp.outstandingAfter(x, "%,16.0f");
+            s += "\n\n";
+        }
+
+        ((TextView) findViewById(R.id.output)).setText(s);
+    }
+    catch (Exception e)
+     {
+         // display e.getMessage()
+         Toast label = Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT);
+         label.show();
+     }
+ }
+
+
+}
